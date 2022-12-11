@@ -5,7 +5,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "insert": "npx ts-node ./src/01_insertChannels.ts",
+    "insert": "npx ts-node ./src/01_채널DB등록.ts",
+    "start": "npx ts-node ./src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -19,7 +20,9 @@
   },
   "dependencies": {
     "@prisma/client": "^4.7.1",
+    "axios": "^1.2.1",
     "dayjs": "^1.11.7",
-    "public-ip": "^6.0.1"
+    "public-ip": "^6.0.1",
+    "sleep-promise": "^9.1.0"
   }
 }

@@ -11,70 +11,91 @@ datasource db {
 }
 
 model Server {
-  id       Int       @id @default(autoincrement())
-  ip       String    @unique
-  hasError Boolean   @default(false)
-  error    String?   @db.LongText
-  errorAt  DateTime?
-  createAt DateTime  @default(now()) // 생성 일자
-  updateAt DateTime  @updatedAt // 업데이트 일자
+  id           Int           @id @default(autoincrement())
+  ip           String        @unique
+  serverErrors ServerError[]
+  createAt     DateTime      @default(now()) // 생성 일자
+  updateAt     DateTime      @updatedAt // 업데이트 일자
+}
+
+model ServerError {
+  id       Int      @id @default(autoincrement())
+  error    String   @db.LongText
+  createAt DateTime @default(now()) // 생성 일자
+  updateAt DateTime @updatedAt // 업데이트 일자
+
+  Server   Server? @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  serverId Int?
 }
 
 //* 채널 정보
 model Channel {
-  id           Int       @id @default(autoincrement())
-  url          String    @unique // 채널 url {channel.url : "afternoonbasket"}
-  no           Int?      @unique // 채널 ID  {channel.id : 100872174}
-  name         String? // 채널 이름 {channel.channelName : "오후의바스켓"}
-  grade        String? // 채널 등급 {channel.actionGrade : "SECOND"}
-  contactTel   String? // 고객센터 전화번호 {channel.contactInfo.representTelephoneNumber : "01039367322"}
-  address      String? // 사업장 소재지 {channel.businessAddressInfo.address : "서울특별시 용산구 원효로2가 1-35"}
-  email        String? // 이메일 {channel.chrgrEmail : "workbuilder@naver.com"}
-  saleCount    Int? // saleCount {channel.saleCount : 34199}
-  birthDay     DateTime? // 대표자생년월일 {channel.representTelephoneNumber : "1992-02-28T15:00:00.000+00:00"}
-  productCount Int? // 상품개수 {productCount : 4}
-  priorityRate Int       @default(10) // 채널 우선순위  
-  createAt     DateTime  @default(now()) // 생성 일자
-  updateAt     DateTime  @updatedAt // 업데이트 일자
-  updateDay    DateTime  @default(now()) // 채널상품 업데이트 DAY
-  errors       Error[]
-  products     Product[]
+  id                        Int       @id @default(autoincrement())
+  url                       String    @unique // 채널 url {channel.url : "afternoonbasket"}
+  no                        Int?      @unique // 채널 ID  {channel.id : 100872174}
+  name                      String? // 채널 이름 {channel.channelName : "오후의바스켓"}
+  grade                     String? // 채널 등급 {channel.actionGrade : "SECOND"}
+  contactTel                String? // 고객센터 전화번호 {channel.representTelephoneNumber : "01039367322"}
+  address                   String? // 사업장 소재지 {channel.businessAddressInfo.address : "서울특별시 용산구 원효로2가 1-35"}
+  email                     String? // 이메일 {channel.chrgrEmail : "workbuilder@naver.com"}
+  saleCount                 Int? // saleCount {channel.saleCount : 34199}
+  birthDay                  DateTime? // 대표자생년월일 {channel.representativeBirthDay : "1992-02-28T15:00:00.000+00:00"}
+  productCount              Int? // 상품개수 {productCount : 4}
+  representName             String? // 사업자명 {channel.representName : }
+  representativeName        String? // 대표자 {channel.representativeName : }
+  businessType              String? // {channel.businessType : }
+  firstCategoriesStr        String? // 첫 카테고리 이름
+  firstCategoriesCreateDate DateTime? // 첫 카테고리 생성일자 firstCategories.filter(ele=>ele.categoryId === "ALL") && {firstCategories[0].createdDate}
+  priorityRate              Int       @default(10) // 채널 우선순위  
+  createAt                  DateTime  @default(now()) // 생성 일자
+  updateAt                  DateTime  @updatedAt // 업데이트 일자
+  updateDay                 DateTime  @default(now()) // 채널상품 업데이트 DAY
+  errors                    Error[]
+  products                  Product[]
+  sales                     Sale[]
 
   @@index([saleCount, priorityRate(sort: Asc), updateDay(sort: Asc)])
 }
 
 //* 상품정보
 model Product {
-  id         Int       @id @unique // {simpleProducts[0].id}
+  id         String    @id @unique // {simpleProducts[0].id}
   name       String // {simpleProducts[0].name} 
+  imageUrl   String?
   createAt   DateTime  @default(now()) // 생성 일자
   updateAt   DateTime  @updatedAt // 업데이트 일자
-  channel    Channel?  @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  channelId  Int?
-  category   Category? @relation(fields: [categoryId], references: [id])
+  channel    Channel?  @relation(fields: [channelNo], references: [no], onDelete: Cascade)
+  channelNo  Int?
+  category   Category? @relation(fields: [categoryId], references: [categoryId])
   categoryId String?
   sales      Sale[]
 }
 
 //* 판매건수 & 판매금액
 model Sale {
-  id           Int      @id @default(autoincrement())
-  price        Int // 상품가격
-  saleCount6M  Int // 판매건수(6개월)
-  saleCount3D  Int // 판매건수(3일)
-  saleAmount6M Int // 매출(6개월)
-  saleAmount3D Int // 매출(3일)
-  createDay    DateTime // 수집 일자
-  product      Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId    Int?
+  id               Int      @id @default(autoincrement())
+  price            Int // 상품가격
+  saleCount6M      Int // 판매건수(6개월)
+  saleAmount6M     Int // 매출(6개월)
+  saleCount3D      Int // 판매건수(3일)
+  saleAmount3D     Int // 매출(3일)
+  salCount6MAvg1D  Float // 판매건수(1일) 6개월로 계산
+  salAmount6MAvg1D Int // 매출(1일) 6개월로 계산
+  salCount3DAvg1D  Float // 판매건수(1일) 3일로 계산
+  salAmount3DAvg1D Int // 매출(1일) 3일로 계산
+  createDay        DateTime // 수집 일자
+  product          Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId        String?
+  channel          Channel? @relation(fields: [channelNo], references: [no], onDelete: Cascade)
+  channelNo        Int?
 }
 
 //* 카테고리
 model Category {
-  id                String    @id @unique
-  name              String
-  wholeCategoryId   String?
-  wholeCategoryName String?
+  categoryId        String    @id @unique
+  wholeCategoryId   String    @unique
+  wholeCategoryName String
+  categoryName      String
   products          Product[]
 }
 

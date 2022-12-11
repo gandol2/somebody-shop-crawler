@@ -1,19 +1,22 @@
-import prisma from "../libs/prismadb.js";
+import prisma from "../prismadb.js";
 import { publicIpv4 } from "public-ip";
-import dayjs from "dayjs";
 import fs from "fs";
+import path from "path";
+import { getDate } from "../dateHelper.js";
+
+const IP파일경로 = path.join(process.env.PWD!, "myIP.txt");
 
 //* get public IP Address
 async function getIPAddress() {
   var ip: string = "-1";
   try {
     // 파일에서 가져오기
-    ip = fs.readFileSync("myIP.txt", "utf-8");
+    ip = fs.readFileSync(IP파일경로, "utf-8");
     console.log(`[IP] ${ip} - Source : myIP.txt`);
   } catch (err) {
     // 파일이 없으면 인터넷에서 가져오기
     ip = await publicIpv4();
-    fs.writeFileSync("myIP.txt", ip);
+    fs.writeFileSync(IP파일경로, ip);
     console.log(`[IP] ${ip} - Source : public-ip`);
   }
   return ip;
@@ -25,29 +28,25 @@ export async function serverPing(error?: string) {
   const ip = await getIPAddress();
 
   if (error) {
-    await prisma.server.upsert({
+    const server = await prisma.server.upsert({
       where: { ip: ip },
-      update: {
-        hasError: true,
-        error: error,
-        errorAt: dayjs().toDate(),
-        updateAt: dayjs().toDate(),
-      },
+      update: { updateAt: getDate() },
       create: {
         ip: ip,
-        hasError: true,
-        error: error,
-        errorAt: dayjs().toDate(),
-        updateAt: dayjs().toDate(),
+        updateAt: getDate(),
       },
+    });
+
+    await prisma.serverError.create({
+      data: { error: error, serverId: server.id },
     });
   } else {
     await prisma.server.upsert({
       where: { ip: ip },
-      update: { updateAt: dayjs().toDate() },
+      update: { updateAt: getDate() },
       create: {
         ip: ip,
-        updateAt: dayjs().toDate(),
+        updateAt: getDate(),
       },
     });
   }

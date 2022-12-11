@@ -1,8 +1,10 @@
-import prisma from "./libs/prismadb.js";
+import path from "path";
+import prisma from "../libs/prismadb.js";
 import fs from "fs";
-import { serverPing } from "./libs/ServerHelper.js";
+import { serverPing } from "../libs/db/serverHelper.js";
+import { getDayDate } from "../libs/dateHelper.js";
 
-const 채널파일경로 = "data/channel_221210.txt";
+const 채널파일경로 = path.join(process.env.PWD!, "data/channel_221210.txt");
 
 async function main() {
   console.log("[START] 채널 등록 프로세스");
@@ -12,8 +14,14 @@ async function main() {
   console.log(`채널목록 Open 완료 ✅`);
   console.log(`[전체:${channels.length.toLocaleString()}]`);
 
+  const day = getDayDate(-10);
   const result = await prisma.channel.createMany({
-    data: channels.map((ele) => ({ url: ele })),
+    data: channels.map((ele) => ({
+      url: ele,
+      createAt: day,
+      updateAt: day,
+      updateDay: day,
+    })),
     skipDuplicates: true,
   });
 
