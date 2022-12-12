@@ -4,7 +4,7 @@ import fs from "fs";
 import { serverPing } from "../libs/db/serverHelper.js";
 import { getDayDate } from "../libs/dateHelper.js";
 
-const 채널파일경로 = path.join(process.env.PWD!, "data/channel_221210.txt");
+const 채널파일경로 = path.join(process.env.PWD!, "data/channel_221210_all.txt");
 
 async function main() {
   console.log("[START] 채널 등록 프로세스");

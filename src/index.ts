@@ -224,8 +224,15 @@ async function main() {
   }
 }
 
+let start = dayjs();
+let end;
+
 main()
   .then(async () => {
+    end = dayjs();
+
+    console.log(`코드실행시간 : ${end.diff(start, "second")} 초`);
+
     await serverPing();
     if (0 < salesResult.length) {
       // if (true) {
