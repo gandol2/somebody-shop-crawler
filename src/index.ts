@@ -12,6 +12,7 @@ import { ChannelOption, SalesResult } from "../types/types.js";
 import dayjs from "dayjs";
 import { getDayDate } from "../libs/dateHelper.js";
 import sleep from "sleep-promise";
+import { printError, printInfo, printLog, printYellow } from "../libs/print.js";
 
 const 수집일자주기_DAY = 3;
 const 최소매출_DAY = 50000;
@@ -19,31 +20,27 @@ const 최소매출_DAY = 50000;
 var salesResult: SalesResult[] = [];
 
 async function main() {
-  console.log("================================================");
-  console.log("[START] 상품정보 수집 프로세스");
-
   var channel = await getLastUpdatedChannel();
 
   if (!channel) {
-    console.error("[오류0] 채널이 없습니다.");
+    printError(
+      "DB에 등록된 채널이 없습니다. 채널정보를 등록 후 이용 해주세요."
+    );
+    printInfo("프로그램을 종료 합니다.");
     return;
   }
 
-  console.log(`[STEP-01] 수집시작 - 채널URL : ${channel.url}`);
+  printLog(`수집시작 (채널URL:${channel.url})`);
 
   try {
     if (!channel.no) {
       //! 스토어NO가 없는경우
-
-      console.log("------------------------------------------------");
-      console.log(
-        `[STEP-02-01] 신규채널 수집 (시작) - 채널URL : ${channel.url}`
+      printInfo(
+        `신규채널 - 채널NO가 없습니다. 채널정보를 가져오는중 (채널URL:${channel.url})`
       );
+
       //* 스마트스토어 정보 API 호출
       const storeInfo = await getStoreInfo(channel.url);
-      console.log(
-        `[STEP-02-02] 신규채널 수집 (완료✅) - 채널URL : ${channel.url} / 채널ID : ${storeInfo.channel.id}`
-      );
 
       // 전체보기 카테고리
       const categorieAll = storeInfo.firstCategories
@@ -76,30 +73,26 @@ async function main() {
         priorityRate: 10,
       };
 
-      console.log(
-        `[STEP-02-03] 신규채널 등록 (시작) - 채널URL : ${channel.url} / 채널ID : ${storeInfo.channel.id}`
-      );
       //* DB Update
       channel = await updateChannel(channel.id, options);
 
-      console.log(
-        `[STEP-02-03] 신규채널 등록 (완료✅) - 채널URL : ${channel.url} / 채널ID : ${channel.no}`
+      printLog(
+        `신규채널 - 수집 완료 (채널URL:${channel.url} / 채널NO:${channel.no} / 채널이름:${channel.name})`
       );
     }
 
-    console.log("------------------------------------------------");
-    console.log(
-      `[STEP-03-01] 상품정보 수집 (시작) - 채널URL : ${channel.url} / 채널ID : ${channel.no}`
-    );
-
+    //^ ========================================= 상품수집
     if (channel && channel.id && channel.no) {
       const today = getDayDate();
 
       const day = dayjs(today).diff(dayjs(channel.updateDay), "day");
 
       if (수집일자주기_DAY > day) {
-        console.log(`마지막 수집 : ${day} 일전`);
-        console.log(`수집일자 기준을 만족하지 못해 종료 합니다. ✅`);
+        printInfo(
+          `상품수집❌ - ${day}일전 상품 수집이 완료된 채널 입니다. (설정된 수집주기:${수집일자주기_DAY}일)`
+        );
+        printInfo("프로그램을 종료 합니다.");
+
         return;
       }
 
@@ -115,7 +108,10 @@ async function main() {
         skipDuplicates: true,
       });
       await sleep(1000);
-      // console.log(categorys);
+
+      printInfo(
+        `상품수집 - 시작 (${channel.name}:https://m.smartstore.naver.com/${channel.url})`
+      );
 
       productResponse.simpleProducts.forEach(async (product, idx, all) => {
         const price = product.benefitsView.mobileDiscountedSalePrice; // 상품가격
@@ -131,11 +127,13 @@ async function main() {
 
         if (최소매출_DAY > salAmount3DAvg1D) return;
 
-        console.log(
-          `[STEP-03-02] 상품정보 등록 (${idx + 1}/${all.length}) - ${
-            product.id
-          } / ${product.name}`
-        );
+        // printLog(
+        //   `상품등록 - 매출(1일): ${salAmount3DAvg1D.toLocaleString()}원 / ${
+        //     product.category.categoryName
+        //   } : https://m.smartstore.naver.com/${channel?.url}/products/${
+        //     product.id
+        //   }`
+        // );
 
         const result: SalesResult = {
           channelUrl: channel?.url!,
@@ -216,7 +214,6 @@ async function main() {
         });
       });
     }
-    // console.log(SortType.POPULAR);
   } catch (error) {
     throw error;
   } finally {
@@ -229,35 +226,42 @@ let end;
 
 main()
   .then(async () => {
-    end = dayjs();
-
-    console.log(`코드실행시간 : ${end.diff(start, "second")} 초`);
+    printInfo(
+      `상품수집 - 완료 ${
+        0 < salesResult.length ? `(${salesResult.length}개)` : `(고매출 상품❌)`
+      }`
+    );
 
     await serverPing();
     if (0 < salesResult.length) {
       // if (true) {
-      console.log("================================================");
-      console.log(
-        `[수집완료] 판매처:${salesResult[0].channelName} - ${salesResult.length}건`
-      );
 
       salesResult.forEach((ele) =>
-        console.log(
-          `상품명:${ele.productName}\n` +
-            `매출(1일):${ele.salAmount3DAvg1D.toLocaleString()}원, ` +
-            `판매건수(1일):${ele.salCount3DAvg1D.toLocaleString()}건\n` +
-            `URL:${ele.url}\n\n`
+        printYellow(
+          `찾은상품 - 매출(1일): ${ele.salAmount3DAvg1D.toLocaleString()}원 / ${
+            ele.productName
+          }:${ele.url}`
         )
       );
     }
   })
   .catch(async (e: Error) => {
-    console.log(`[오류발생 ❌]`);
-    console.error(e);
+    printError(`오류발생`);
+    printError(e.message);
+    if (e.stack) {
+      printError(e.stack);
+    }
+
     await serverPing(e.stack);
   })
   .finally(async () => {
-    console.log("================================================");
+    end = dayjs();
+    printLog(
+      `----------------------------------------------------- (실행시간 : ${end.diff(
+        start,
+        "second"
+      )}초)`
+    );
     await prisma.$disconnect();
 
     process.exit(1);
