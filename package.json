@@ -5,8 +5,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "npx prisma generate && tsc",
     "insert": "npx ts-node ./src/01_채널DB등록.ts",
-    "start": "npx ts-node ./src/index.ts",
+    "start": "node dist/src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
