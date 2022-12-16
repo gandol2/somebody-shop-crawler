@@ -19,7 +19,7 @@ export async function getLastUpdatedChannel() {
 
   const channel = channels[idx];
 
-  // console.log(idx);
+  console.log(`select channels = ${idx}/${channels.length}`);
 
   return channel;
 }
