@@ -13,6 +13,7 @@ import dayjs from "dayjs";
 import { getDayDate } from "../libs/dateHelper.js";
 import sleep from "sleep-promise";
 import { printError, printInfo, printLog, printYellow } from "../libs/print.js";
+import { Channel } from "@prisma/client";
 
 const 수집일자주기_DAY = 3;
 const 최소매출_DAY = 50000;
@@ -20,7 +21,7 @@ const 최소매출_DAY = 50000;
 var salesResult: SalesResult[] = [];
 
 async function main() {
-  var channel = await getLastUpdatedChannel();
+  var channel: null | Channel = await getLastUpdatedChannel();
 
   if (!channel) {
     printError(
@@ -41,6 +42,19 @@ async function main() {
 
       //* 스마트스토어 정보 API 호출
       const storeInfo = await getStoreInfo(channel.url);
+
+      if (
+        1 > storeInfo.productCount ||
+        "탈퇴회원" === storeInfo.channel.representName ||
+        "휴면회원" === storeInfo.channel.representName
+      ) {
+        console.log(
+          `[채널삭제 💢 ] ${storeInfo.channel.representName} - ${channel.url}`
+        );
+        await prisma.channel.delete({ where: { url: channel.url } });
+        channel = null;
+        return;
+      }
 
       // 전체보기 카테고리
       const categorieAll = storeInfo.firstCategories
@@ -217,7 +231,9 @@ async function main() {
   } catch (error) {
     throw error;
   } finally {
-    await updateChannelUpdateDay(channel.id);
+    if (channel) {
+      await updateChannelUpdateDay(channel.id);
+    }
   }
 }
 

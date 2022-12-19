@@ -9,7 +9,7 @@ function rand(start: number, end: number) {
 
 export async function getLastUpdatedChannel() {
   const channels = await prisma.channel.findMany({
-    take: 10,
+    take: 50,
     orderBy: { updateDay: "asc" },
   });
 

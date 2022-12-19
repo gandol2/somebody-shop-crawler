@@ -22,7 +22,7 @@ var salesResult: SalesResult[] = [];
 async function main() {
   // var channel = await getLastUpdatedChannel();
   var channel = await prisma.channel.findUnique({
-    where: { url: "afternoonbasket" },
+    where: { url: "dynjj" },
   });
 
   if (!channel) {
@@ -43,7 +43,21 @@ async function main() {
       );
 
       //* 스마트스토어 정보 API 호출
+
       const storeInfo = await getStoreInfo(channel.url);
+      // console.log(storeInfo);
+      if (
+        1 > storeInfo.productCount ||
+        "탈퇴회원" === storeInfo.channel.representName ||
+        "휴면회원" === storeInfo.channel.representName
+      ) {
+        console.log(
+          `[채널삭제 💢 ] ${storeInfo.channel.representName} - ${channel.url}`
+        );
+        await prisma.channel.delete({ where: { url: channel.url } });
+        channel = null;
+        return;
+      }
 
       // 전체보기 카테고리
       const categorieAll = storeInfo.firstCategories
@@ -90,14 +104,14 @@ async function main() {
 
       const day = dayjs(today).diff(dayjs(channel.updateDay), "day");
 
-      // if (수집일자주기_DAY > day) {
-      //   printInfo(
-      //     `상품수집❌ - ${day}일전 상품 수집이 완료된 채널 입니다. (설정된 수집주기:${수집일자주기_DAY}일)`
-      //   );
-      //   printInfo("프로그램을 종료 합니다.");
+      if (수집일자주기_DAY > day) {
+        printInfo(
+          `상품수집❌ - ${day}일전 상품 수집이 완료된 채널 입니다. (설정된 수집주기:${수집일자주기_DAY}일)`
+        );
+        printInfo("프로그램을 종료 합니다.");
 
-      //   return;
-      // }
+        return;
+      }
 
       const productResponse = await getProducts(channel.no, "POPULAR", 10);
 
@@ -220,7 +234,9 @@ async function main() {
   } catch (error) {
     throw error;
   } finally {
-    await updateChannelUpdateDay(channel.id);
+    if (channel) {
+      await updateChannelUpdateDay(channel.id);
+    }
   }
 }
 
