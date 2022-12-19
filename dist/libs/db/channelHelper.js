@@ -11,7 +11,7 @@ export async function getLastUpdatedChannel() {
     // console.log(channels);
     const idx = rand(0, channels.length);
     const channel = channels[idx];
-    console.log(idx);
+    console.log(`select channels = ${idx}/${channels.length}`);
     return channel;
 }
 export async function updateChannel(channelId, option) {
