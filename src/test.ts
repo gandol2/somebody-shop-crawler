@@ -22,7 +22,7 @@ var salesResult: SalesResult[] = [];
 async function main() {
   // var channel = await getLastUpdatedChannel();
   var channel = await prisma.channel.findUnique({
-    where: { url: "dynjj" },
+    where: { url: "afternoonbasket" },
   });
 
   if (!channel) {
@@ -104,14 +104,14 @@ async function main() {
 
       const day = dayjs(today).diff(dayjs(channel.updateDay), "day");
 
-      if (수집일자주기_DAY > day) {
-        printInfo(
-          `상품수집❌ - ${day}일전 상품 수집이 완료된 채널 입니다. (설정된 수집주기:${수집일자주기_DAY}일)`
-        );
-        printInfo("프로그램을 종료 합니다.");
+      // if (수집일자주기_DAY > day) {
+      //   printInfo(
+      //     `상품수집❌ - ${day}일전 상품 수집이 완료된 채널 입니다. (설정된 수집주기:${수집일자주기_DAY}일)`
+      //   );
+      //   printInfo("프로그램을 종료 합니다.");
 
-        return;
-      }
+      //   return;
+      // }
 
       const productResponse = await getProducts(channel.no, "POPULAR", 10);
 
