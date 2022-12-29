@@ -8,7 +8,7 @@ import _, { update } from "lodash";
 import { Prisma, Product, Sale } from "@prisma/client";
 
 var indexChannelID = getChannelIDbyENV();
-indexChannelID = 100174726; // 다이슨코리아
+// indexChannelID = 100174726; // 다이슨코리아
 // indexChannelID = 101192901; // 미슐램
 // indexChannelID = 101192900; // 없는채널
 
