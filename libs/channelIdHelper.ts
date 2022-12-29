@@ -4,7 +4,8 @@ import path from "path";
 import Dotenv from "dotenv";
 Dotenv.config();
 
-const ENV_PATH = path.join(process.env.PWD!, ".env"); // ENV
+// const ENV_PATH = path.join(process.env.PWD!, ".env"); // ENV
+const ENV_PATH = path.join(".env"); // ENV
 
 export function getChannelIDbyENV(): number | undefined {
   const STORE_NO_END = Number(process.env.STORE_NO_END);
