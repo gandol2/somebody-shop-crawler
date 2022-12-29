@@ -44,7 +44,10 @@ npx prisma init --datasource-provider mysql
 * * * * *      root    sleep 30; echo `date` >> /tmp/baruda.log
 * * * * *      root    sleep 40; echo `date` >> /tmp/baruda.log
 * * * * *      root    sleep 50; echo `date` >> /tmp/baruda.log
+```
 
+```
+# vi /tmp/baruda.log
 
 ```
 

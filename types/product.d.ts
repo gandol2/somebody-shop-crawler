@@ -30,7 +30,7 @@ export interface SimpleProduct {
   usableDelivery: boolean;
   representativeImageUrl: string;
   optionalImageUrls: string[];
-  productDeliveryInfo: ProductDeliveryInfo;
+  productDeliveryInfo: ProductDeliveryInfo?;
   detailContents: DetailContents;
   saleStartDate?: string;
   saleEndDate?: string;
