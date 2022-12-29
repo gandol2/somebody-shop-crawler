@@ -10,7 +10,7 @@ import { Prisma, Product, Sale } from "@prisma/client";
 var indexChannelID = getChannelIDbyENV();
 // indexChannelID = 100174726; // 다이슨코리아
 // indexChannelID = 101192901; // 미슐램
-indexChannelID = 100000285; // 없는채널
+// indexChannelID = 100000285; // 없는채널
 
 let start = dayjs();
 
@@ -237,11 +237,11 @@ main()
     console.log(e);
   })
   .finally(async () => {
-    console.log(
-      `[완료] 실행시간 : ${dayjs()
-        .diff(start, "millisecond")
-        .toLocaleString()}ms`
-    );
+    // console.log(
+    //   `[완료] 실행시간 : ${dayjs()
+    //     .diff(start, "millisecond")
+    //     .toLocaleString()}ms`
+    // );
     await prisma.$disconnect();
     process.exit(1);
   });
