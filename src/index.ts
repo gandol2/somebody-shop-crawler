@@ -10,16 +10,14 @@ import { Prisma, Product, Sale } from "@prisma/client";
 var indexChannelID = getChannelIDbyENV();
 // indexChannelID = 100174726; // 다이슨코리아
 // indexChannelID = 101192901; // 미슐램
-// indexChannelID = 101192900; // 없는채널
+indexChannelID = 100000285; // 없는채널
 
 let start = dayjs();
 
 //* ================================ main function
 async function main() {
   if (!indexChannelID) {
-    console.log(
-      `[상품번호없음]---------------------------------------------------- ${process.env.STORE_NO_START}`
-    );
+    console.log(`[상품번호없음] ${process.env.STORE_NO_START}`);
     process.exit(1);
   }
 
@@ -30,9 +28,7 @@ async function main() {
     !productResponse.simpleProducts ||
     1 > productResponse.simpleProducts.length
   ) {
-    console.log(
-      `[판매상품없음]---------------------------------------------------- ${process.env.STORE_NO_START}`
-    );
+    console.log(`[판매상품없음] ${process.env.STORE_NO_START}`);
     process.exit(1);
   }
 
@@ -104,9 +100,9 @@ async function main() {
         productName: product.name,
         imageUrl: product.representativeImageUrl,
         productStatusType: product.productStatusType,
-        manufacturerName: product.naverShoppingSearchInfo.manufacturerName!,
-        brandName: product.naverShoppingSearchInfo.brandName!,
-        modelName: product.naverShoppingSearchInfo.modelName!,
+        manufacturerName: product.naverShoppingSearchInfo?.manufacturerName,
+        brandName: product.naverShoppingSearchInfo?.brandName!,
+        modelName: product.naverShoppingSearchInfo?.modelName!,
         totalReviewCount: product.reviewAmount.totalReviewCount,
         averageReviewScore: product.reviewAmount.averageReviewScore,
         displayable: product.displayable,
@@ -119,9 +115,9 @@ async function main() {
         productName: product.name,
         imageUrl: product.representativeImageUrl,
         productStatusType: product.productStatusType,
-        manufacturerName: product.naverShoppingSearchInfo.manufacturerName!,
-        brandName: product.naverShoppingSearchInfo.brandName!,
-        modelName: product.naverShoppingSearchInfo.modelName!,
+        manufacturerName: product.naverShoppingSearchInfo?.manufacturerName!,
+        brandName: product.naverShoppingSearchInfo?.brandName!,
+        modelName: product.naverShoppingSearchInfo?.modelName!,
         totalReviewCount: product.reviewAmount.totalReviewCount,
         averageReviewScore: product.reviewAmount.averageReviewScore,
         displayable: product.displayable,
@@ -242,9 +238,9 @@ main()
   })
   .finally(async () => {
     console.log(
-      `[완료]----------------------------------------------------- (실행시간 : ${dayjs()
+      `[완료] 실행시간 : ${dayjs()
         .diff(start, "millisecond")
-        .toLocaleString()}ms)`
+        .toLocaleString()}ms`
     );
     await prisma.$disconnect();
     process.exit(1);

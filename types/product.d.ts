@@ -19,7 +19,7 @@ export interface SimpleProduct {
   seoInfo: SeoInfo;
   optionUsable: boolean;
   supplementProductUsable: boolean;
-  naverShoppingSearchInfo: NaverShoppingSearchInfo;
+  naverShoppingSearchInfo: NaverShoppingSearchInfo?;
   purchaseReviewInfo: PurchaseReviewInfo;
   minorPurchasable: boolean;
   isRestrictCart: boolean;
@@ -69,10 +69,10 @@ export interface SellerTag {
 }
 
 export interface NaverShoppingSearchInfo {
-  brandId?: number;
-  manufacturerName?: string;
-  brandName?: string;
-  modelName?: string;
+  brandId?: number | undefined;
+  manufacturerName?: string | undefined;
+  brandName?: string | undefined;
+  modelName?: string | undefined;
 }
 
 export interface PurchaseReviewInfo {
