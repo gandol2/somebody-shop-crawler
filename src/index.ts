@@ -1,284 +1,267 @@
-import path from "path";
+import Dotenv from "dotenv";
+Dotenv.config();
 import prisma from "../libs/prismadb.js";
-import fs from "fs";
-import { serverPing } from "../libs/db/serverHelper.js";
-import {
-  getLastUpdatedChannel,
-  updateChannel,
-  updateChannelUpdateDay,
-} from "../libs/db/channelHelper.js";
-import { getProducts, getStoreInfo } from "../libs/naverApi.js";
-import { ChannelOption, SalesResult } from "../types/types.js";
 import dayjs from "dayjs";
-import { getDayDate } from "../libs/dateHelper.js";
-import sleep from "sleep-promise";
-import { printError, printInfo, printLog, printYellow } from "../libs/print.js";
-import { Channel } from "@prisma/client";
+import { getChannelIDbyENV } from "../libs/channelIdHelper.js";
+import { getProducts } from "../libs/naverApi.js";
+import _, { update } from "lodash";
+import { Prisma, Product, Sale } from "@prisma/client";
 
-const 수집일자주기_DAY = 3;
-const 최소매출_DAY = 50000;
-
-var salesResult: SalesResult[] = [];
-
-async function main() {
-  var channel: null | Channel = await getLastUpdatedChannel();
-
-  if (!channel) {
-    printError(
-      "DB에 등록된 채널이 없습니다. 채널정보를 등록 후 이용 해주세요."
-    );
-    printInfo("프로그램을 종료 합니다.");
-    return;
-  }
-
-  printLog(`수집시작 (채널URL:${channel.url})`);
-
-  try {
-    if (!channel.no) {
-      //! 스토어NO가 없는경우
-      printInfo(
-        `신규채널 - 채널NO가 없습니다. 채널정보를 가져오는중 (채널URL:${channel.url})`
-      );
-
-      //* 스마트스토어 정보 API 호출
-      const storeInfo = await getStoreInfo(channel.url);
-
-      if (
-        1 > storeInfo.productCount ||
-        "탈퇴회원" === storeInfo.channel.representName ||
-        "휴면회원" === storeInfo.channel.representName
-      ) {
-        console.log(
-          `[채널삭제 💢 ] ${storeInfo.channel.representName} - ${channel.url}`
-        );
-        await prisma.channel.delete({ where: { url: channel.url } });
-        channel = null;
-        return;
-      }
-
-      // 전체보기 카테고리
-      const categorieAll = storeInfo.firstCategories
-        .filter((ele) => ele.categoryId === "ALL")
-        .shift();
-
-      // 첫번째 카테고리
-      const categorieFirst = storeInfo.firstCategories[0];
-
-      //* DB저장 속성 추출
-      const options: ChannelOption = {
-        no: storeInfo.channel.id!,
-        name: storeInfo.channel.channelName!,
-        grade: storeInfo.channel.actionGrade!,
-        contactTel: storeInfo.channel.representTelephoneNumber!,
-        address: storeInfo.channel.businessAddressInfo.fullAddressInfo!,
-        email: storeInfo.channel.chrgrEmail!,
-        saleCount: storeInfo.channel.saleCount!,
-        birthDay: storeInfo.channel.representativeBirthDay
-          ? dayjs(storeInfo.channel.representativeBirthDay).toDate()
-          : null,
-        productCount: storeInfo.productCount!,
-        representName: storeInfo.channel.representName!,
-        representativeName: storeInfo.channel.representativeName!,
-        businessType: storeInfo.channel.businessType!,
-        firstCategoriesStr: categorieFirst.name!,
-        firstCategoriesCreateDate: categorieAll
-          ? dayjs(categorieAll.createdDate).toDate()
-          : dayjs(categorieFirst.createdDate).toDate(),
-        priorityRate: 10,
-      };
-
-      //* DB Update
-      channel = await updateChannel(channel.id, options);
-
-      printLog(
-        `신규채널 - 수집 완료 (채널URL:${channel.url} / 채널NO:${channel.no} / 채널이름:${channel.name})`
-      );
-    }
-
-    //^ ========================================= 상품수집
-    if (channel && channel.id && channel.no) {
-      const today = getDayDate();
-
-      const day = dayjs(today).diff(dayjs(channel.updateDay), "day");
-
-      if (수집일자주기_DAY > day) {
-        printInfo(
-          `상품수집❌ - ${day}일전 상품 수집이 완료된 채널 입니다. (설정된 수집주기:${수집일자주기_DAY}일)`
-        );
-        printInfo("프로그램을 종료 합니다.");
-
-        return;
-      }
-
-      const productResponse = await getProducts(channel.no, "POPULAR", 10);
-
-      const categorys = productResponse.simpleProducts.map(
-        (ele) => ele.category
-      );
-
-      //* 카테고리 목록 업데이트
-      await prisma.category.createMany({
-        data: categorys,
-        skipDuplicates: true,
-      });
-      await sleep(1000);
-
-      printInfo(
-        `상품수집 - 시작 (${channel.name}:https://m.smartstore.naver.com/${channel.url})`
-      );
-
-      productResponse.simpleProducts.forEach(async (product, idx, all) => {
-        const price = product.benefitsView.mobileDiscountedSalePrice; // 상품가격
-        const saleCount6M = product.saleAmount.cumulationSaleCount; // 판매건수 6개월
-        const saleCount3D = product.saleAmount.recentSaleCount; // 판매건수 3일
-        const saleAmount6M = price * saleCount6M; // 매출 6개월
-        const saleAmount3D = price * saleCount3D; // 매출 3일
-
-        const salCount6MAvg1D = saleCount6M / 180; // 예상판매건수(1일) / 6개월
-        const salAmount6MAvg1D = Math.round(price * salCount6MAvg1D); // 예상매출(1일) / 6개월
-        const salCount3DAvg1D = saleCount3D / 3; // 예상판매건수(1일) / 3일
-        const salAmount3DAvg1D = Math.round(price * salCount3DAvg1D); // 예상매출(1일) / 3일
-
-        if (최소매출_DAY > salAmount3DAvg1D) return;
-
-        // printLog(
-        //   `상품등록 - 매출(1일): ${salAmount3DAvg1D.toLocaleString()}원 / ${
-        //     product.category.categoryName
-        //   } : https://m.smartstore.naver.com/${channel?.url}/products/${
-        //     product.id
-        //   }`
-        // );
-
-        const result: SalesResult = {
-          channelUrl: channel?.url!,
-          channelNo: channel?.no!,
-          channelName: channel?.name!,
-          price,
-          saleCount6M,
-          saleCount3D,
-          saleAmount6M,
-          saleAmount3D,
-          salCount6MAvg1D,
-          salAmount6MAvg1D,
-          salCount3DAvg1D,
-          salAmount3DAvg1D,
-          productId: product.id,
-          productName: product.name,
-          url: `https://m.smartstore.naver.com/${channel?.url}/products/${product.id}`,
-        };
-        salesResult.push(result);
-
-        var categorie = await prisma.category.findUnique({
-          where: { categoryId: product.category.categoryId },
-        });
-
-        if (!categorie) {
-          categorie = await prisma.category.create({
-            data: { ...product.category },
-          });
-        }
-
-        await prisma.product.upsert({
-          where: { id: product.id.toString() },
-          update: {
-            updateAt: getDayDate(),
-            name: product.name,
-            imageUrl: product.representativeImageUrl,
-            sales: {
-              create: {
-                createDay: getDayDate(),
-                price: price,
-                saleCount6M: saleCount6M, // 판매건수 6개월
-                saleAmount6M: saleAmount6M, // 매출 6개월
-                saleCount3D: saleCount3D, // 판매건수 3일
-                saleAmount3D: saleAmount3D, // 매출 3일
-
-                salCount6MAvg1D: parseFloat(salCount6MAvg1D.toFixed(2)), // 예상판매건수(1일) / 6개월
-                salAmount6MAvg1D: salAmount6MAvg1D, // 예상매출(1일) / 6개월
-                salCount3DAvg1D: parseFloat(salCount3DAvg1D.toFixed(2)), // 예상판매건수(1일) / 3일
-                salAmount3DAvg1D: salAmount3DAvg1D, // 예상매출(1일) / 3일
-                channelNo: product.channel.channelNo,
-              },
-            },
-          },
-          create: {
-            updateAt: getDayDate(),
-            id: product.id.toString(),
-            name: product.name,
-            imageUrl: product.representativeImageUrl,
-            channelNo: product.channel.channelNo,
-            categoryId: categorie.categoryId,
-            sales: {
-              create: {
-                createDay: getDayDate(),
-                price: price,
-                saleCount6M: saleCount6M, // 판매건수 6개월
-                saleAmount6M: saleAmount6M, // 매출 6개월
-                saleCount3D: saleCount3D, // 판매건수 3일
-                saleAmount3D: saleAmount3D, // 매출 3일
-
-                salCount6MAvg1D: parseFloat(salCount6MAvg1D.toFixed(2)), // 예상판매건수(1일) / 6개월
-                salAmount6MAvg1D: salAmount6MAvg1D, // 예상매출(1일) / 6개월
-                salCount3DAvg1D: parseFloat(salCount3DAvg1D.toFixed(2)), // 예상판매건수(1일) / 3일
-                salAmount3DAvg1D: salAmount3DAvg1D, // 예상매출(1일) / 3일
-                channelNo: product.channel.channelNo,
-              },
-            },
-          },
-        });
-      });
-    }
-  } catch (error) {
-    throw error;
-  } finally {
-    if (channel) {
-      await updateChannelUpdateDay(channel.id);
-    }
-  }
-}
+var indexChannelID = getChannelIDbyENV();
+indexChannelID = 100174726; // 다이슨코리아
+// indexChannelID = 101192901; // 미슐램
+// indexChannelID = 101192900; // 없는채널
 
 let start = dayjs();
-let end;
 
-main()
-  .then(async () => {
-    printInfo(
-      `상품수집 - 완료 ${
-        0 < salesResult.length ? `(${salesResult.length}개)` : `(고매출 상품❌)`
-      }`
+//* ================================ main function
+async function main() {
+  if (!indexChannelID) {
+    console.log(
+      `[상품번호없음]---------------------------------------------------- ${process.env.STORE_NO_START}`
     );
+    process.exit(1);
+  }
 
-    await serverPing();
-    if (0 < salesResult.length) {
-      // if (true) {
+  const productResponse = await getProducts(indexChannelID, "POPULAR", 5);
 
-      salesResult.forEach((ele) =>
-        printYellow(
-          `찾은상품 - 매출(1일): ${ele.salAmount3DAvg1D.toLocaleString()}원 / ${
-            ele.productName
-          }:${ele.url}`
-        )
-      );
+  if (
+    !productResponse ||
+    !productResponse.simpleProducts ||
+    1 > productResponse.simpleProducts.length
+  ) {
+    console.log(
+      `[판매상품없음]---------------------------------------------------- ${process.env.STORE_NO_START}`
+    );
+    process.exit(1);
+  }
+
+  const channel = productResponse.simpleProducts[0].channel;
+  //^ 채널정보 업데이트
+  await prisma.channel.upsert({
+    where: {
+      channelNo: channel.channelNo.toString(),
+    },
+    create: {
+      channelNo: channel.channelNo.toString(),
+      accountNo: channel.accountNo.toString(),
+      accountId: channel.accountId,
+      channelName: channel.channelName,
+      totalCount: productResponse.totalCount,
+    },
+    update: {
+      // channelNo: channel.channelNo.toString(),
+      accountNo: channel.accountNo.toString(),
+      accountId: channel.accountId,
+      channelName: channel.channelName,
+      totalCount: productResponse.totalCount,
+    },
+  });
+
+  //^ 등록상품 필터링
+  const filterProducts = productResponse.simpleProducts.filter((product) => {
+    const price = product.benefitsView.discountedSalePrice;
+    const saleCount3D = product.saleAmount.recentSaleCount;
+    const saleCount6M = product.saleAmount.cumulationSaleCount;
+
+    const saleAmount3D = price * saleCount3D;
+    const saleAmount6M = price * saleCount6M;
+
+    if (300000 <= saleAmount3D || 6000000 <= saleAmount6M) {
+      return product;
     }
-  })
-  .catch(async (e: Error) => {
-    printError(`오류발생`);
-    printError(e.message);
-    if (e.stack) {
-      printError(e.stack);
-    }
+  });
 
-    await serverPing(e.stack);
+  //^ 카테고리 등록 OFF
+  if (false) {
+    const categories = _.uniqBy(
+      filterProducts.map((product) => product.category),
+      (ele) => ele.categoryId
+    );
+    if (0 < categories.length) {
+      await prisma.category.createMany({
+        data: categories,
+        skipDuplicates: true,
+      });
+    }
+    // console.log(categories);
+  }
+
+  //   const products = filterProducts.map((product) => ({
+  //     productId: product.id,
+  //     productName: product.name,
+  //     imageUrl: product.representativeImageUrl,
+  //     productStatusType: product.productStatusType,
+  //     manufacturerName: product.naverShoppingSearchInfo.manufacturerName,
+  //     brandName: product.naverShoppingSearchInfo.brandName,
+  //     modelName: product.naverShoppingSearchInfo.modelName,
+  //     totalReviewCount: product.reviewAmount.totalReviewCount,
+  //     averageReviewScore: product.reviewAmount.averageReviewScore,
+  //     displayable: product.displayable,
+  //     productDeliveryFee: product.productDeliveryInfo.baseFee,
+  //     channelNo: product.channel.channelNo,
+  //     categoryId: product.category.categoryId,
+  //   }));
+
+  for (const product of filterProducts) {
+    const price = product.benefitsView.discountedSalePrice;
+    const saleCount3D = product.saleAmount.recentSaleCount;
+    const saleCount6M = product.saleAmount.cumulationSaleCount;
+
+    const saleAmount3D = price * saleCount3D;
+    const saleAmount6M = price * saleCount6M;
+
+    await prisma.product.upsert({
+      where: {
+        productId: product.id.toString(),
+      },
+      create: {
+        productId: product.id.toString(),
+        productName: product.name,
+        imageUrl: product.representativeImageUrl,
+        productStatusType: product.productStatusType,
+        manufacturerName: product.naverShoppingSearchInfo.manufacturerName,
+        brandName: product.naverShoppingSearchInfo.brandName,
+        modelName: product.naverShoppingSearchInfo.modelName,
+        totalReviewCount: product.reviewAmount.totalReviewCount,
+        averageReviewScore: product.reviewAmount.averageReviewScore,
+        displayable: product.displayable,
+        productDeliveryFee: product.productDeliveryInfo.baseFee,
+        channelNo: product.channel.channelNo.toString(),
+        categoryId: product.category.categoryId,
+      },
+      update: {
+        //   productId: product.id,
+        productName: product.name,
+        imageUrl: product.representativeImageUrl,
+        productStatusType: product.productStatusType,
+        manufacturerName: product.naverShoppingSearchInfo.manufacturerName,
+        brandName: product.naverShoppingSearchInfo.brandName,
+        modelName: product.naverShoppingSearchInfo.modelName,
+        totalReviewCount: product.reviewAmount.totalReviewCount,
+        averageReviewScore: product.reviewAmount.averageReviewScore,
+        displayable: product.displayable,
+        productDeliveryFee: product.productDeliveryInfo.baseFee,
+        //   channelNo: product.channel.channelNo,
+        categoryId: product.category.categoryId,
+      },
+    });
+  }
+
+  const productIds = filterProducts.map((product) => product.id.toString());
+  const day3ago = dayjs().subtract(3, "day");
+  //^ 3일내에 수집된 상품 가져오기
+  const salesDay3Ago = await prisma.sale.findMany({
+    where: {
+      AND: [
+        {
+          createAt: {
+            gt: day3ago.toDate(),
+          },
+        },
+      ],
+      OR: productIds.map((ele) => ({ productId: ele })),
+    },
+    select: {
+      id: true,
+      productId: true,
+      channelNo: true,
+    },
+  });
+
+  const salesDay3AgoProductIds = salesDay3Ago.map((ele) => ele.productId);
+
+  // console.log(salesDay3Ago);
+
+  const sales = filterProducts.map((product) => {
+    const price = product.benefitsView.discountedSalePrice;
+    const saleCount3D = product.saleAmount.recentSaleCount;
+    const saleCount6M = product.saleAmount.cumulationSaleCount;
+
+    const saleAmount3D = price * saleCount3D;
+    const saleAmount6M = price * saleCount6M;
+
+    const data: Prisma.SaleCreateManyInput = {
+      price,
+      saleCount3D,
+      saleCount6M,
+      saleAmount3D,
+      saleAmount6M,
+      channelNo: product.channel.channelNo.toString(),
+      productId: product.id.toString(),
+    };
+
+    // await prisma.sale.create({ data: { ...data } });
+
+    return data;
+  });
+
+  const updateSales = salesDay3Ago.map((ele) => {
+    const filter = sales
+      .filter((sale) => sale.productId === ele.productId)
+      .shift();
+    if (filter) {
+      return { ...filter, ...ele };
+    }
+  });
+  // console.log(updateSales);
+
+  let updateSalesResultCount = 0;
+
+  for (const updateSale of updateSales) {
+    if (updateSale && updateSale.id) {
+      await prisma.sale.update({
+        where: { id: updateSale.id },
+        data: {
+          price: updateSale.price,
+          saleCount3D: updateSale.saleCount3D,
+          saleCount6M: updateSale.saleCount6M,
+          saleAmount3D: updateSale.saleAmount3D,
+          saleAmount6M: updateSale.saleAmount6M,
+        },
+      });
+      updateSalesResultCount += 1;
+    }
+  }
+
+  const createSales = sales.filter((ele) => {
+    if (ele.productId) {
+      if (!salesDay3AgoProductIds.includes(ele.productId)) {
+        return ele;
+      }
+    }
+  });
+
+  const createSalesResult = await prisma.sale.createMany({ data: createSales });
+
+  console.log(
+    `[등록성공] ${channel.channelName}(${channel.channelNo}) 전체:${sales.length} 등록:${createSalesResult.count} 변경:${updateSalesResultCount}`
+  );
+
+  //   console.log(productResponse);
+}
+
+//
+//
+//
+//
+//
+//
+//
+//
+//* ================================ run()
+main()
+  .then(async () => {})
+  .catch((e) => {
+    console.log("[에러발생-1]");
+    console.log(e);
   })
   .finally(async () => {
-    end = dayjs();
-    printLog(
-      `----------------------------------------------------- (실행시간 : ${end.diff(
-        start,
-        "second"
-      )}초)`
+    console.log(
+      `[완료]----------------------------------------------------- (실행시간 : ${dayjs()
+        .diff(start, "millisecond")
+        .toLocaleString()}ms)`
     );
     await prisma.$disconnect();
-
     process.exit(1);
   });

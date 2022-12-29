@@ -2,13 +2,11 @@ export interface ProductResponse {
   sortType: string;
   page: string;
   simpleProducts: SimpleProduct[];
-  filterFreeDelivery: boolean;
-  filterRegularSubscription: boolean;
   totalCount: number;
 }
 
 export interface SimpleProduct {
-  id: string;
+  id: number;
   category: Category;
   name: string;
   channel: Channel;
@@ -20,7 +18,6 @@ export interface SimpleProduct {
   authenticationType: string;
   seoInfo: SeoInfo;
   optionUsable: boolean;
-  optionStandards: any[];
   supplementProductUsable: boolean;
   naverShoppingSearchInfo: NaverShoppingSearchInfo;
   purchaseReviewInfo: PurchaseReviewInfo;
@@ -35,6 +32,8 @@ export interface SimpleProduct {
   optionalImageUrls: string[];
   productDeliveryInfo: ProductDeliveryInfo;
   detailContents: DetailContents;
+  saleStartDate?: string;
+  saleEndDate?: string;
   enableCart: boolean;
   freeDelivery: boolean;
   todayDelivery: boolean;
@@ -66,15 +65,14 @@ export interface SeoInfo {
 }
 
 export interface SellerTag {
-  code: number;
   text: string;
 }
 
 export interface NaverShoppingSearchInfo {
-  brandId: number;
+  brandId?: number;
   manufacturerName: string;
   brandName: string;
-  modelName: string;
+  modelName?: string;
 }
 
 export interface PurchaseReviewInfo {
@@ -103,7 +101,6 @@ export interface BenefitsView {
   storeMemberReviewPoint: number;
   managerGeneralPurchaseReviewPoint: number;
   managerPremiumPurchaseReviewPoint: number;
-  presentContent: string;
   givePresent: boolean;
   textReviewPoint: number;
   photoVideoReviewPoint: number;
@@ -130,10 +127,8 @@ export interface ReviewAmount {
 export interface ProductDeliveryInfo {
   deliveryFeeType: string;
   baseFee: number;
-  freeConditionalAmount: number;
-  differentialFeeByArea: string;
   deliveryAttributeType: string;
-  deliveryBundleGroup: DeliveryBundleGroup;
+  deliveryBundleGroup?: DeliveryBundleGroup;
 }
 
 export interface DeliveryBundleGroup {
@@ -141,7 +136,6 @@ export interface DeliveryBundleGroup {
 }
 
 export interface DetailContents {
-  detailContentText: string;
   editorType: string;
 }
 

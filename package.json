@@ -8,12 +8,13 @@
     "build": "npx prisma generate && tsc",
     "insert": "npx ts-node ./src/01_채널DB등록.ts",
     "start": "node ./dist/src/index",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsc && node ./dist/src/index"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/lodash": "^4.14.191",
     "@types/node": "^18.11.12",
     "prisma": "^4.7.1",
     "ts-node": "^10.9.1",
@@ -24,6 +25,8 @@
     "axios": "^1.2.1",
     "chalk": "^5.2.0",
     "dayjs": "^1.11.7",
+    "dotenv": "^16.0.3",
+    "lodash": "^4.17.21",
     "public-ip": "^6.0.1",
     "sleep-promise": "^9.1.0"
   }
