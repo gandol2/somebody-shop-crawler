@@ -87,22 +87,6 @@ async function main() {
     // console.log(categories);
   }
 
-  //   const products = filterProducts.map((product) => ({
-  //     productId: product.id,
-  //     productName: product.name,
-  //     imageUrl: product.representativeImageUrl,
-  //     productStatusType: product.productStatusType,
-  //     manufacturerName: product.naverShoppingSearchInfo.manufacturerName,
-  //     brandName: product.naverShoppingSearchInfo.brandName,
-  //     modelName: product.naverShoppingSearchInfo.modelName,
-  //     totalReviewCount: product.reviewAmount.totalReviewCount,
-  //     averageReviewScore: product.reviewAmount.averageReviewScore,
-  //     displayable: product.displayable,
-  //     productDeliveryFee: product.productDeliveryInfo.baseFee,
-  //     channelNo: product.channel.channelNo,
-  //     categoryId: product.category.categoryId,
-  //   }));
-
   for (const product of filterProducts) {
     const price = product.benefitsView.discountedSalePrice;
     const saleCount3D = product.saleAmount.recentSaleCount;
@@ -120,9 +104,9 @@ async function main() {
         productName: product.name,
         imageUrl: product.representativeImageUrl,
         productStatusType: product.productStatusType,
-        manufacturerName: product.naverShoppingSearchInfo.manufacturerName,
-        brandName: product.naverShoppingSearchInfo.brandName,
-        modelName: product.naverShoppingSearchInfo.modelName,
+        manufacturerName: product.naverShoppingSearchInfo.manufacturerName!,
+        brandName: product.naverShoppingSearchInfo.brandName!,
+        modelName: product.naverShoppingSearchInfo.modelName!,
         totalReviewCount: product.reviewAmount.totalReviewCount,
         averageReviewScore: product.reviewAmount.averageReviewScore,
         displayable: product.displayable,
@@ -135,9 +119,9 @@ async function main() {
         productName: product.name,
         imageUrl: product.representativeImageUrl,
         productStatusType: product.productStatusType,
-        manufacturerName: product.naverShoppingSearchInfo.manufacturerName,
-        brandName: product.naverShoppingSearchInfo.brandName,
-        modelName: product.naverShoppingSearchInfo.modelName,
+        manufacturerName: product.naverShoppingSearchInfo.manufacturerName!,
+        brandName: product.naverShoppingSearchInfo.brandName!,
+        modelName: product.naverShoppingSearchInfo.modelName!,
         totalReviewCount: product.reviewAmount.totalReviewCount,
         averageReviewScore: product.reviewAmount.averageReviewScore,
         displayable: product.displayable,

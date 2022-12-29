@@ -12,8 +12,6 @@ export function getChannelIDbyENV(): number | undefined {
   const SERVER_TOTAL = Number(process.env.SERVER_TOTAL);
   const STORE_NO_START = Number(process.env.STORE_NO_START);
 
-  console.log(STORE_NO_END);
-
   if (STORE_NO_END < STORE_NO_START) {
     return undefined;
   } else {

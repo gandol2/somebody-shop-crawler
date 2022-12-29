@@ -70,8 +70,8 @@ export interface SellerTag {
 
 export interface NaverShoppingSearchInfo {
   brandId?: number;
-  manufacturerName: string;
-  brandName: string;
+  manufacturerName?: string;
+  brandName?: string;
   modelName?: string;
 }
 
