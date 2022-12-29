@@ -215,7 +215,7 @@ async function main() {
   const createSalesResult = await prisma.sale.createMany({ data: createSales });
 
   console.log(
-    `[등록성공] ${channel.channelName}(${channel.channelNo}) 전체:${sales.length} 등록:${createSalesResult.count} 변경:${updateSalesResultCount}`
+    `[등록성공] ${channel.channelName}(${channel.channelNo}) 전체:${productResponse.totalCount} / 고매출:${sales.length} / 등록:${createSalesResult.count} / 변경:${updateSalesResultCount}`
   );
 
   //   console.log(productResponse);
