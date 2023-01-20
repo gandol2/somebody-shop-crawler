@@ -64,18 +64,36 @@ export async function getProducts(
   }
 }
 
-//* 스마트스토어 정보 획득 (채널명)
+//! 스마트스토어 정보 획득 (채널명)
 export async function getMallBasicInfo(channelName: string) {
   // var myH = new Headers()
   var myHeaders = new Headers();
   myHeaders.append("authority", "search.shopping.naver.com");
   myHeaders.append("referer", "https://search.shopping.naver.com/allmall");
+  myHeaders.append("accept", "application/json, text/plain, */*");
+  myHeaders.append("accept-language", "ko,en-US;q=0.9,en;q=0.8,ko-KR;q=0.7");
+  myHeaders.append("cache-control", "no-cache");
+  myHeaders.append("pragma", "no-cache");
+  myHeaders.append(
+    "sec-ch-ua",
+    `"Not_A Brand";v="99", "Google Chrome";v="109", "Chromium";v="109"`
+  );
+  myHeaders.append("sec-ch-ua-mobile", "?0");
+  myHeaders.append("sec-ch-ua-platform", `"Windows"`);
+  myHeaders.append("sec-fetch-dest", "empty");
+  myHeaders.append("sec-fetch-mode", "cors");
+  myHeaders.append("sec-fetch-site", "same-origin");
+  myHeaders.append(
+    "user-agent",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
+  );
+  // myHeaders.append("sec-fetch-mode", "cors");
 
   const response = await fetch(
     `https://search.shopping.naver.com/allmall/api/allmall?isSmartStore=Y&keyword=${encodeURIComponent(
       channelName
     )}&page=1&sortingOrder=prodClk`,
-    { method: "GET", headers: myHeaders, redirect: "follow" }
+    { method: "GET", headers: myHeaders }
   );
 
   try {
