@@ -79,6 +79,7 @@ export async function getMallBasicInfo(channelName: string) {
   );
 
   try {
+    console.log(await response.text());
     const json = (await response.json()) as AllMall;
 
     const filter = json.mallList.filter(
