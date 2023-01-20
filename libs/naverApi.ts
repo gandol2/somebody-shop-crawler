@@ -75,24 +75,28 @@ export async function getMallBasicInfo(channelName: string) {
   myHeaders.append("referer", "https://search.shopping.naver.com/allmall");
 
   // //! 테스트 헤더 [시작]
-  // myHeaders.append("accept", "application/json, text/plain, */*");
-  // myHeaders.append("accept-language", "ko,en-US;q=0.9,en;q=0.8,ko-KR;q=0.7");
-  // myHeaders.append("cache-control", "no-cache");
-  // myHeaders.append("pragma", "no-cache");
-  // myHeaders.append(
-  //   "sec-ch-ua",
-  //   `"Not_A Brand";v="99", "Google Chrome";v="109", "Chromium";v="109"`
-  // );
-  // myHeaders.append("sec-ch-ua-mobile", "?0");
-  // myHeaders.append("sec-ch-ua-platform", `"Windows"`);
-  // myHeaders.append("sec-fetch-dest", "empty");
-  // myHeaders.append("sec-fetch-mode", "cors");
-  // myHeaders.append("sec-fetch-site", "same-origin");
-  // myHeaders.append(
-  //   "user-agent",
-  //   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
-  // );
-  // myHeaders.append("Cookie", "sus_val=3C3icYNgMEGBZQcxlrrY2+Cn");
+  myHeaders.append("accept", "application/json, text/plain, */*");
+  myHeaders.append("accept-language", "ko,en-US;q=0.9,en;q=0.8,ko-KR;q=0.7");
+  myHeaders.append("cache-control", "no-cache");
+  myHeaders.append("pragma", "no-cache");
+  myHeaders.append(
+    "sec-ch-ua",
+    `"Not_A Brand";v="99", "Google Chrome";v="109", "Chromium";v="109"`
+  );
+  myHeaders.append("sec-ch-ua-mobile", "?0");
+  myHeaders.append("sec-ch-ua-platform", `"Windows"`);
+  myHeaders.append("sec-fetch-dest", "empty");
+  myHeaders.append("sec-fetch-mode", "cors");
+  myHeaders.append("sec-fetch-site", "same-origin");
+  myHeaders.append(
+    "user-agent",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
+  );
+  myHeaders.append(
+    "Cookie",
+    "NNB=BKGYQAJTC3FGG; sus_val=Xu/GAWKG9GMKSXI8LjRI/MqK; autocomplete=use; spage_uid=; AD_SHP_BID=26"
+  );
+
   // //! 테스트 헤더 [끝]
 
   const response = await fetch(
