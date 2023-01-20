@@ -58,3 +58,12 @@ npx prisma init --datasource-provider mysql
 # grc -c ~/.grc/conf.tail tail -f /tmp/baruda.log
 
 ```
+
+## 크론
+
+```
+# /etc/init.d/cron status
+# /etc/init.d/cron stop
+# /etc/init.d/cron start
+
+```

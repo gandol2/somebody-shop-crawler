@@ -91,7 +91,7 @@ export async function getMallBasicInfo(channelName: string) {
 
     return filter[0];
   } catch (e) {
-    console.error(e);
+    console.log(e);
     return undefined;
   }
 }
@@ -110,7 +110,7 @@ export async function getMallUrlByCrUrl(crUrl: string) {
     // console.log(url.pathname);
     return url.pathname.replace("/", "");
   } catch (e) {
-    console.error(e);
+    console.log(e);
     return undefined;
   }
 }
@@ -124,7 +124,7 @@ export async function getMallInfo(channelUrl: string) {
     const json = (await response.json()) as SmartStoreResponse;
     return json;
   } catch (e) {
-    console.error(e);
+    console.log(e);
     return undefined;
   }
 }
