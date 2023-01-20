@@ -66,6 +66,9 @@ export async function getProducts(
 
 //! 스마트스토어 정보 획득 (채널명)
 export async function getMallBasicInfo(channelName: string) {
+  console.log(
+    "============================================================= [getMallBasicInfo()]"
+  );
   // var myH = new Headers()
   var myHeaders = new Headers();
   myHeaders.append("authority", "search.shopping.naver.com");
@@ -87,7 +90,7 @@ export async function getMallBasicInfo(channelName: string) {
     "user-agent",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
   );
-  // myHeaders.append("sec-fetch-mode", "cors");
+  myHeaders.append("Cookie", "sus_val=3C3icYNgMEGBZQcxlrrY2+Cn");
 
   const response = await fetch(
     `https://search.shopping.naver.com/allmall/api/allmall?isSmartStore=Y&keyword=${encodeURIComponent(
