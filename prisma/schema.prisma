@@ -17,6 +17,7 @@ model Channel {
   accountId                 String?
   channelName               String? // 채널명
   totalCount                Int? // 상품개수
+  indexedAt                 DateTime?
   url                       String? // 채널 url {channel.url : "afternoonbasket"}
   grade                     String? // 채널 등급 {channel.actionGrade : "SECOND"}
   contactTel                String? // 고객센터 전화번호 {channel.representTelephoneNumber : "01039367322"}
@@ -56,6 +57,7 @@ model Product {
   channelNo          String?
   category           Category? @relation(fields: [categoryId], references: [categoryId])
   categoryId         String?
+  latestSaleId       String?
   sales              Sale[]
 }
 

@@ -47,7 +47,7 @@ npx prisma init --datasource-provider mysql
 ```
 
 ```
-# vi /tmp/baruda.log
+# rm /tmp/baruda.log
 
 ```
 

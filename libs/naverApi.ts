@@ -2,7 +2,11 @@ import axios, { AxiosRequestConfig } from "axios";
 import { ProductResponse } from "../types/product";
 import { SmartStoreResponse } from "../types/smartStore";
 import { SortType } from "../types/types.js";
+import { AllMall } from "../types/allmall";
+import { URL } from "url";
+import fetch, { Headers } from "node-fetch";
 
+//* 스마트스토어 정보 획득 (url)
 export async function getStoreInfo(url: string) {
   const fetchUrl = `https://m.smartstore.naver.com/i/v1/smart-stores?url=${url}`;
   const options: AxiosRequestConfig = {
@@ -22,6 +26,7 @@ export async function getStoreInfo(url: string) {
   }
 }
 
+//* 상품정보 획득
 export async function getProducts(
   channelId: number,
   sortType: string,
@@ -56,5 +61,70 @@ export async function getProducts(
     throw new Error(
       `[에러] [getProducts()] 상품 정보 획득 실패 - 채널ID:${channelId}, 응답코드:${response.status}`
     );
+  }
+}
+
+//* 스마트스토어 정보 획득 (채널명)
+export async function getMallBasicInfo(channelName: string) {
+  // var myH = new Headers()
+  var myHeaders = new Headers();
+  myHeaders.append("authority", "search.shopping.naver.com");
+  myHeaders.append("referer", "https://search.shopping.naver.com/allmall");
+
+  const response = await fetch(
+    `https://search.shopping.naver.com/allmall/api/allmall?isSmartStore=Y&keyword=${encodeURIComponent(
+      channelName
+    )}&page=1&sortingOrder=prodClk`,
+    { method: "GET", headers: myHeaders, redirect: "follow" }
+  );
+
+  try {
+    const json = (await response.json()) as AllMall;
+
+    const filter = json.mallList.filter(
+      (ele) => ele.mallName.toLowerCase() === channelName.toLocaleLowerCase()
+    );
+
+    if (1 > filter.length) {
+      return undefined;
+    }
+
+    return filter[0];
+  } catch (e) {
+    console.error(e);
+    return undefined;
+  }
+}
+
+//* 스마트스토어 url 획득 (crUrl)
+export async function getMallUrlByCrUrl(crUrl: string) {
+  try {
+    const response = await fetch(crUrl, { method: "GET", redirect: "manual" });
+
+    // console.log("=========================");
+    // console.log(response.status);
+    // console.log(response.headers.get("location"));
+    // console.log("=========================");
+
+    const url = new URL(response.headers.get("location") || "");
+    // console.log(url.pathname);
+    return url.pathname.replace("/", "");
+  } catch (e) {
+    console.error(e);
+    return undefined;
+  }
+}
+
+//* 채널정보 획득 (channelUrl)
+export async function getMallInfo(channelUrl: string) {
+  try {
+    const response = await fetch(
+      `https://m.smartstore.naver.com/i/v1/smart-stores?url=${channelUrl}`
+    );
+    const json = (await response.json()) as SmartStoreResponse;
+    return json;
+  } catch (e) {
+    console.error(e);
+    return undefined;
   }
 }
