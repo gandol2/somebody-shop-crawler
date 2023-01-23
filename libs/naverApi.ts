@@ -92,10 +92,10 @@ export async function getMallBasicInfo(channelName: string) {
     "user-agent",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
   );
-  myHeaders.append(
-    "Cookie",
-    "NNB=BKGYQAJTC3FGG; sus_val=Xu/GAWKG9GMKSXI8LjRI/MqK; autocomplete=use; spage_uid=; AD_SHP_BID=26"
-  );
+  // myHeaders.append(
+  //   "Cookie",
+  //   "NNB=BKGYQAJTC3FGG; sus_val=Xu/GAWKG9GMKSXI8LjRI/MqK; autocomplete=use; spage_uid=; AD_SHP_BID=26"
+  // );
 
   // //! 테스트 헤더 [끝]
 
