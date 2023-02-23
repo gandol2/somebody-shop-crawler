@@ -1,6 +1,5 @@
 import axios from "axios";
 import fetch from "node-fetch";
-import sleep from "sleep";
 function rand(start: number, end: number) {
   return Math.floor(Math.random() * (end - start + 1) + start);
 }
@@ -187,6 +186,11 @@ const 키워드목록 = [
   "에잇세컨즈",
 ];
 
+function sleep(ms: number) {
+  var start = new Date().getTime();
+  while (new Date().getTime() < start + ms);
+}
+
 async function main() {
   while (true) {
     const 선택키워드 = 키워드목록[rand(0, 키워드목록.length)];
@@ -218,18 +222,29 @@ async function main() {
       },
     };
 
-    await axios(config)
-      .then(function (response) {
-        // console.log(JSON.stringify(response.data));
-        console.log(`[공격완료] ${선택키워드}`);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-
-    await sleep.msleep(100);
+    try {
+      const response = axios.get(
+        `http://www.market-analysis.kr/api/naver/keyword?keyword=${encodeURIComponent(
+          선택키워드
+        )}`,
+        config
+      );
+      console.log(선택키워드);
+      sleep(10);
+    } catch (e) {
+      console.log(e);
+    }
+    // console.log((await response).data);
+    // await axios(config)
+    //   .then(function (response) {
+    //     // console.log(JSON.stringify(response.data));
+    //     console.log(`[공격완료] ${선택키워드}`);
+    //     sleep(10);
+    //   })
+    //   .catch(function (error) {
+    //     console.log(error);
+    //   });
   }
-
   // console.log(keyowrds);
 }
 
