@@ -223,14 +223,14 @@ async function main() {
     };
 
     try {
-      const response = axios.get(
+      const response = await axios.get(
         `http://www.market-analysis.kr/api/naver/keyword?keyword=${encodeURIComponent(
           선택키워드
         )}`,
         config
       );
-      console.log(선택키워드);
-      sleep(10);
+      console.log(response);
+      // sleep(10);
     } catch (e) {
       console.log(e);
     }
