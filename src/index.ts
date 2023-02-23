@@ -1,5 +1,6 @@
 import axios from "axios";
 import fetch from "node-fetch";
+import sleep from "sleep";
 function rand(start: number, end: number) {
   return Math.floor(Math.random() * (end - start + 1) + start);
 }
@@ -187,43 +188,47 @@ const 키워드목록 = [
 ];
 
 async function main() {
-  const 선택키워드 = 키워드목록[rand(0, 키워드목록.length)];
+  while (true) {
+    const 선택키워드 = 키워드목록[rand(0, 키워드목록.length)];
 
-  var config = {
-    method: "get",
-    maxBodyLength: Infinity,
-    url: `http://www.market-analysis.kr/api/naver/keyword?keyword=${encodeURIComponent(
-      선택키워드
-    )}`,
-    headers: {
-      Accept:
-        "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-      "Accept-Language": "ko",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-      Pragma: "no-cache",
-      "Sec-Fetch-Dest": "document",
-      "Sec-Fetch-Mode": "navigate",
-      "Sec-Fetch-Site": "none",
-      "Sec-Fetch-User": "?1",
-      "Upgrade-Insecure-Requests": "1",
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
-      "sec-ch-ua":
-        '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"',
-      "sec-ch-ua-mobile": "?0",
-      "sec-ch-ua-platform": '"Windows"',
-    },
-  };
+    var config = {
+      method: "get",
+      maxBodyLength: Infinity,
+      url: `http://www.market-analysis.kr/api/naver/keyword?keyword=${encodeURIComponent(
+        선택키워드
+      )}`,
+      headers: {
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "Accept-Language": "ko",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+        Pragma: "no-cache",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "Upgrade-Insecure-Requests": "1",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+        "sec-ch-ua":
+          '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+      },
+    };
 
-  await axios(config)
-    .then(function (response) {
-      // console.log(JSON.stringify(response.data));
-      console.log(`[공격완료] ${선택키워드}`);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
+    await axios(config)
+      .then(function (response) {
+        // console.log(JSON.stringify(response.data));
+        console.log(`[공격완료] ${선택키워드}`);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+
+    await sleep.msleep(100);
+  }
 
   // console.log(keyowrds);
 }
