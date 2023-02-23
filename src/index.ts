@@ -229,7 +229,7 @@ async function main() {
         )}`,
         config
       );
-      console.log(response);
+      console.log(response.data);
       // sleep(10);
     } catch (e) {
       console.log(e);
