@@ -192,7 +192,9 @@ async function main() {
   var config = {
     method: "get",
     maxBodyLength: Infinity,
-    url: "http://www.market-analysis.kr/api/naver/keyword?keyword=%ED%81%AC%EB%A1%9D%EC%8A%A4&email=cyjsg42@naver.com",
+    url: `http://www.market-analysis.kr/api/naver/keyword?keyword=${encodeURIComponent(
+      선택키워드
+    )}`,
     headers: {
       Accept:
         "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
