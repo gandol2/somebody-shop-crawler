@@ -1,5 +1,7 @@
 import axios from "axios";
 import fetch from "node-fetch";
+import request from "request";
+
 function rand(start: number, end: number) {
   return Math.floor(Math.random() * (end - start + 1) + start);
 }
@@ -192,74 +194,94 @@ function sleep(ms: number) {
 }
 
 async function main() {
-  while (true) {
-    const 선택키워드 = 키워드목록[rand(0, 키워드목록.length)];
+  var options = {
+    method: "GET",
+    url: "https://www.market-analysis.kr/api/naver/keyword?keyword=%EC%96%91%EB%A7%90&email=qwer8700@gmail.com",
+    headers: {
+      Accept: "application/json, text/plain, */*",
+      "Accept-Language": "ko,en-US;q=0.9,en;q=0.8,ko-KR;q=0.7",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      Cookie:
+        "connect.sid=s%3ABkPMZogpGgYS9WAXC0PVdDmxBJlbbY08.oUFPn5dl1YB8IjfG6jAYP4AK9HaaXFZpKWKgrMa7Z9U",
+      Origin: "https://sintree.co.kr",
+      Pragma: "no-cache",
+      Referer: "https://sintree.co.kr/",
+      "Sec-Fetch-Dest": "empty",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Site": "cross-site",
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+      "sec-ch-ua":
+        '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"',
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": '"Windows"',
+    },
+  };
+  await request(options, function (error: any, response: any) {
+    if (error) throw new Error(error);
+    console.log(response.body);
+  });
 
-    var config = {
-      method: "get",
-      maxBodyLength: Infinity,
-      url: `http://www.market-analysis.kr/api/naver/keyword?keyword=${encodeURIComponent(
-        선택키워드
-      )}`,
-      headers: {
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-        "Accept-Language": "ko",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-        Pragma: "no-cache",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Upgrade-Insecure-Requests": "1",
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
-        "sec-ch-ua":
-          '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"',
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": '"Windows"',
-      },
-    };
+  // while (true) {
+  //   const 선택키워드 = 키워드목록[rand(0, 키워드목록.length)];
+  //   const url = `http://www.market-analysis.kr/api/naver/keyword?keyword=${선택키워드}&email=qwer8700@gmail.com`;
+  //   var config = {
+  //     method: "get",
+  //     maxBodyLength: Infinity,
+  //     url: url,
+  //     headers: {
+  //       Accept: "application/json, text/plain, */*",
+  //       "Accept-Language": "ko,en-US;q=0.9,en;q=0.8,ko-KR;q=0.7",
+  //       "Cache-Control": "no-cache",
+  //       Connection: "keep-alive",
+  //       Cookie:
+  //         "connect.sid=s%3ABkPMZogpGgYS9WAXC0PVdDmxBJlbbY08.oUFPn5dl1YB8IjfG6jAYP4AK9HaaXFZpKWKgrMa7Z9U",
+  //       Origin: "http://sintree.co.kr",
+  //       Pragma: "no-cache",
+  //       Referer: "http://sintree.co.kr/",
+  //       "Sec-Fetch-Dest": "empty",
+  //       "Sec-Fetch-Mode": "cors",
+  //       "Sec-Fetch-Site": "cross-site",
+  //       "User-Agent":
+  //         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+  //       "sec-ch-ua":
+  //         '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"',
+  //       "sec-ch-ua-mobile": "?0",
+  //       "sec-ch-ua-platform": '"Windows"',
+  //     },
+  //   };
 
-    try {
-      const response = await axios.get(
-        `http://www.market-analysis.kr/api/naver/keyword?keyword=${encodeURIComponent(
-          선택키워드
-        )}`,
-        config
-      );
-      console.log(response.data);
-      // sleep(10);
-    } catch (e) {
-      console.log(e);
-    }
-    // console.log((await response).data);
-    // await axios(config)
-    //   .then(function (response) {
-    //     // console.log(JSON.stringify(response.data));
-    //     console.log(`[공격완료] ${선택키워드}`);
-    //     sleep(10);
-    //   })
-    //   .catch(function (error) {
-    //     console.log(error);
-    //   });
-  }
+  //   try {
+  //     const response = await axios.get(url, config);
+  //     console.log(response.data);
+  //     return;
+  //     // sleep(10);
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  //   break;
+  //   // console.log((await response).data);
+  //   // await axios(config)
+  //   //   .then(function (response) {
+  //   //     // console.log(JSON.stringify(response.data));
+  //   //     console.log(`[공격완료] ${선택키워드}`);
+  //   //     sleep(10);
+  //   //   })
+  //   //   .catch(function (error) {
+  //   //     console.log(error);
+  //   //   });
+  // }
   // console.log(keyowrds);
 }
 
 //* ================================ run()
 main()
-  .then(async () => {})
   .catch((e) => {
     console.log("[에러발생-1]");
     console.log(e);
   })
   .finally(async () => {
-    // console.log(
-    //   `[완료] 실행시간 : ${dayjs()
-    //     .diff(start, "millisecond")
-    //     .toLocaleString()}ms`
-    // );
+    console.log(`[완료]`);
     process.exit(1);
   });
